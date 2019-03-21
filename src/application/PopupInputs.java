@@ -82,6 +82,8 @@ public class PopupInputs {
 			
 			ArrayList<Label> studentIDList = new ArrayList<Label>();
 			ArrayList<Label> studentNameList = new ArrayList<Label>();
+			ArrayList<Label> studentMiddleNameList = new ArrayList<Label>();
+			ArrayList<Label> studentSurnameList = new ArrayList<Label>();
 			ArrayList<Button> studentButtonList = new ArrayList<Button>();
 			ArrayList<RadioButton> studentRadioButtonList = new ArrayList<RadioButton>();
 			
@@ -98,6 +100,10 @@ public class PopupInputs {
 				studentIDList.add(id);
 				Label name = new Label(studentSet.getString(4));
 				studentNameList.add(name);
+				Label middlename = new Label(studentSet.getString(5));
+				studentMiddleNameList.add(middlename);
+				Label surname = new Label(studentSet.getString(6));
+				studentSurnameList.add(surname);
 				Button search = new Button("Select");
 				
 				search.setOnAction(new EventHandler<ActionEvent>() {
@@ -121,8 +127,109 @@ public class PopupInputs {
 				studentRadioButtonList.add(selectedRB);
 				layout.add(id, 0, index);
 				layout.add(name, 1, index);
-				layout.add(search, 2, index);
-				layout.add(selectedRB, 3, index);
+				layout.add(middlename, 2, index);
+				layout.add(surname, 3, index);
+				layout.add(search, 4, index);
+				layout.add(selectedRB, 5, index);
+				index++;
+			}
+			
+			dialog.getDialogPane().setContent(layout);
+			
+			dialog.setResultConverter(dialogButton -> {
+			    if (dialogButton == selectButtonType) {
+					if (!viewID.equals("")) {
+				    	ArrayList<String> dataExtract = new ArrayList<String>();
+				    	dataExtract.add(0, viewID);
+				    	
+				        return dataExtract;
+					} else {
+						return null;
+					}
+			    } else {
+			    	return null;
+			    }
+			});
+
+			
+			Optional<ArrayList<String>> result = dialog.showAndWait();
+			ArrayList<String> idList = new ArrayList<String>();
+			
+			result.ifPresent(details -> {
+				idList.add(details.get(0));
+			});
+
+			return idList.get(0);
+			
+			
+		} catch (Exception e) {
+		}
+		return null;
+		
+	}
+	
+	public String displayStaff(String staffName, SQLTable connection) {
+		try {
+			ResultSet staffSet = connection.findAllWhere("firstname", staffName);
+			Dialog<ArrayList<String>> dialog = new Dialog<ArrayList<String>>();
+			dialog.setTitle("Search Results");
+			dialog.setHeaderText("Results for staff called " + staffName);
+			
+			ButtonType selectButtonType = new ButtonType("View Selected");
+			
+			dialog.getDialogPane().getButtonTypes().addAll(selectButtonType, ButtonType.CANCEL);
+			
+			ArrayList<Label> staffIDList = new ArrayList<Label>();
+			ArrayList<Label> staffNameList = new ArrayList<Label>();
+			ArrayList<Label> staffMiddleNameList = new ArrayList<Label>();
+			ArrayList<Label> staffSurnameList = new ArrayList<Label>();
+			ArrayList<Button> staffButtonList = new ArrayList<Button>();
+			ArrayList<RadioButton> staffRadioButtonList = new ArrayList<RadioButton>();
+			
+			GridPane layout = new GridPane();
+			layout.setHgap(10);
+			layout.setVgap(10);
+			layout.setPadding(new Insets(20, 150, 10, 10));
+			
+			final ToggleGroup selectedStaff = new ToggleGroup();
+			
+			int index = 0;
+			while (staffSet.next()) {
+				Label id = new Label(staffSet.getString(1));
+				staffIDList.add(id);
+				Label name = new Label(staffSet.getString(2));
+				staffNameList.add(name);
+				Label middlename = new Label(staffSet.getString(3));
+				staffMiddleNameList.add(middlename);
+				Label surname = new Label(staffSet.getString(4));
+				staffSurnameList.add(surname);
+				Button search = new Button("Select");
+				
+				search.setOnAction(new EventHandler<ActionEvent>() {
+				    @Override public void handle(ActionEvent e) {
+				        Button source = (Button) e.getSource();
+				    	for (int x = 0; x < staffRadioButtonList.size(); x++) {
+				    		if (staffRadioButtonList.get(x).getId().equals(source.getId())) {
+				    			staffRadioButtonList.get(x).setSelected(true);
+				    		}
+				    	}
+				        setId(source.getId());
+				    }
+				});
+				
+				search.setId(id.getText());
+				staffButtonList.add(search);
+				RadioButton selectedRB = new RadioButton();
+				selectedRB.setToggleGroup(selectedStaff);
+				selectedRB.setId(id.getText());
+				selectedRB.setMouseTransparent(true);
+				staffRadioButtonList.add(selectedRB);
+				layout.add(id, 0, index);
+				layout.add(name, 1, index);
+				layout.add(middlename, 2, index);
+				layout.add(surname, 3, index);
+				layout.add(search, 4, index);
+				layout.add(selectedRB, 5, index);
 				index++;
 			}
 			
@@ -214,7 +321,7 @@ public class PopupInputs {
 		return submittedResults;
 	}
 	
-	public ArrayList<String> inputDialog(String title, String promptText, String buttonPromptText, String[] textFieldKeys, ArrayList<Pair<String, SQLTable>> sqlChoiceBox, Pair<String,String[]> cbOptions) {
+	public ArrayList<String> inputDialog(String title, String promptText, String buttonPromptText, String[] textFieldKeys, ArrayList<Pair<String, Pair<String, SQLTable>>> sqlChoiceBox, Pair<String,String[]> cbOptions) {
 		
 		Dialog<ArrayList<String>> dialog = new Dialog<>();
 		
@@ -222,7 +329,7 @@ public class PopupInputs {
 		dialog.setHeaderText(promptText);
 		
 		ButtonType functionButtonType = new ButtonType(buttonPromptText, ButtonData.OK_DONE);
-		dialog.getDialogPane().getButtonTypes().addAll(functionButtonType, ButtonType.CANCEL);
+		dialog.getDialogPane().getButtonTypes().addAll(functionButtonType);
 		
 		GridPane grid = new GridPane();
 		grid.setHgap(10);
@@ -231,24 +338,41 @@ public class PopupInputs {
 		
 		ArrayList<TextField> textFields = new ArrayList<TextField>();
 		
-		ArrayList<String> allCourses = new ArrayList<String>();
+		ArrayList<ChoiceBox<String>> allSQLChoiceBoxes = new ArrayList<ChoiceBox<String>>();
+		
 		
 		if (sqlChoiceBox != null) {
-			ResultSet allCoursesQueryResult = sqlChoiceBox.get(0).getValue().findAll();
-			
-			try {
-				while (allCoursesQueryResult.next()) {
-					String choiceCourseText = allCoursesQueryResult.getString(1) + " - " + allCoursesQueryResult.getString(2);
-					allCourses.add(choiceCourseText);
+			for (int i = 0; i < sqlChoiceBox.size(); i++) {
+
+				ArrayList<String> allCourses = new ArrayList<String>();
+				allCourses.add(null);
+				
+				ResultSet allCoursesQueryResult = sqlChoiceBox.get(i).getValue().getValue().findAll();
+				
+				try {
+					while (allCoursesQueryResult.next()) {
+						String choiceCourseText = allCoursesQueryResult.getString(1) + " - " + allCoursesQueryResult.getString(2);
+						allCourses.add(choiceCourseText);
+					}
+				} catch (SQLException e) {
+					System.out.println("Error: " + e);
 				}
-			} catch (SQLException e) {
-				System.out.println("Error: " + e);
+				ChoiceBox<String> tableChoiceBox = new ChoiceBox<String>(
+						FXCollections.observableArrayList(allCourses)
+					);
+
+				if (sqlChoiceBox.get(i).getKey() != null) {
+					for (int counter = 1; counter < allCourses.size(); counter++) {
+						if (sqlChoiceBox.get(i).getKey().equals(allCourses.get(counter).split(" - ")[0])) {
+							tableChoiceBox.setValue(allCourses.get(counter));
+						}
+					}
+				}
+				allSQLChoiceBoxes.add(tableChoiceBox);
 			}
 		}
 		
-		ChoiceBox<String> tableChoiceBox = new ChoiceBox<String>(
-			FXCollections.observableArrayList(allCourses)
-		);
+		
 		
 		ArrayList<String> predefinedChoiceStrings = new ArrayList<String>();
 		
@@ -262,25 +386,37 @@ public class PopupInputs {
 				FXCollections.observableArrayList(predefinedChoiceStrings)
 			);
 		
-		for (int i=0; i<textFieldKeys.length; i++) {
-			TextField textField = new TextField();
-			textField.setPromptText(textFieldKeys[i]);
-			textFields.add(i, textField);
-			grid.add(new Label(textField.getPromptText() + ":"), 0, i);
-			grid.add(textField, 1, i);
-			
-			if (i+1 == textFieldKeys.length) {
-				i++;
-				if (sqlChoiceBox != null) {
-					grid.add(new Label(sqlChoiceBox.get(0).getKey() + ":"), 0, i);
-					grid.add(tableChoiceBox, 1, i);
-					i++;
-				} else if (cbOptions != null) {
-					grid.add(new Label(cbOptions.getKey() + ":"), 0, i);
-					grid.add(predefinedChoiceBox, 1, i);
+		int overallIndex = 0;
+		
+		if (textFieldKeys != null) {
+			for (int i=0; i<textFieldKeys.length; i++) {
+				TextField textField = new TextField();
+				textField.setPromptText(textFieldKeys[i]);
+				textFields.add(i, textField);
+				grid.add(new Label(textField.getPromptText() + ":"), 0, i);
+				grid.add(textField, 1, i);
+
+				if (i+1 == textFieldKeys.length) {
+					overallIndex = i+1;
 				}
 			}
 		}
+		
+		if (sqlChoiceBox != null) {
+			for (int x=0; x < allSQLChoiceBoxes.size(); x++) {
+				grid.add(new Label(sqlChoiceBox.get(x).getValue().getKey() + ":"), 0, overallIndex);
+				grid.add(allSQLChoiceBoxes.get(x), 1, overallIndex);
+				overallIndex++;
+			}
+		}
+		
+		if (cbOptions != null) {
+			grid.add(new Label(cbOptions.getKey() + ":"), 0, overallIndex);
+			grid.add(predefinedChoiceBox, 1, overallIndex);
+			overallIndex++;
+		}
+		
+		
 
 		dialog.getDialogPane().setContent(grid);
 		
@@ -293,8 +429,10 @@ public class PopupInputs {
 			    	index++;
 		    	}
 		    	if (sqlChoiceBox != null) {
-			    	moduleDataExtract.add(index, tableChoiceBox.getValue());
-			    	index++;
+		    		for (int i=0; i<allSQLChoiceBoxes.size(); i++) {
+				    	moduleDataExtract.add(index, allSQLChoiceBoxes.get(i).getValue());
+				    	index++;
+		    		}
 		    	}
 		    	if (cbOptions != null) {
 			    	moduleDataExtract.add(index, predefinedChoiceBox.getValue());

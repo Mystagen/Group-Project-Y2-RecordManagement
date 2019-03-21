@@ -93,8 +93,9 @@ public class StudentController implements Initializable {
 			try {
 				int search = Integer.valueOf(stuSearch.getText()); 
 				try { 
+					boolean found = false;
 					ResultSet studentResultSet = studentConnection.findAll();
-					while (studentResultSet.next()) {
+					while (studentResultSet.next() && !found) {
 						if (studentResultSet.getInt(1) == search) {
 							
 							stuFirstName.setText(studentResultSet.getString(4));
@@ -129,6 +130,7 @@ public class StudentController implements Initializable {
 							while(studentAccountResultSet.next()) {
 								usernameText.setText(studentAccountResultSet.getString(2));
 							}
+							found = true;
 						}
 						else {
 							stuFirstName.setText("Name: Unavailable");
@@ -152,7 +154,6 @@ public class StudentController implements Initializable {
 						}
 					}
 				} catch (Exception e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 					stuFirstName.setText("Name: Unavailable");
 					stuMiddleName.setText("Name: Unavailable");
@@ -189,7 +190,6 @@ public class StudentController implements Initializable {
 	public void studentSave() {
 		studentConnection.updateStudent(stuID.getText().split(":")[1], stuFirstName.getText(), stuMiddleName.getText(), stuSurname.getText(), houseText.getText(), streetText.getText(), cityText.getText(), countyText.getText(), postcodeText.getText(), contactPhoneText.getText(), contactEmailText.getText(), courseText.getValue().split(" - ")[0]);
 		studentConnection.updateStudentStatus(stuID.getText().split(":")[1], stuStatus.getValue(), stuReason.getValue());
-		
 	}
 	
 	public void studentAdd() {
@@ -217,7 +217,11 @@ public class StudentController implements Initializable {
 		ArrayList<String> studentDetail = dialog.inputDialog("Add a Student", "Add a Student", "Add", textFieldNames, null, coursePair);
 		
 		if (studentDetail.size() == 11) {
-			studentConnection.insertStudent(studentDetail.get(0), studentDetail.get(1), studentDetail.get(2), studentDetail.get(3), studentDetail.get(4), studentDetail.get(5), studentDetail.get(6), studentDetail.get(7), studentDetail.get(8), studentDetail.get(9), studentDetail.get(10).split("-")[0]);
+			int id = studentConnection.insertStudent(studentDetail.get(0), studentDetail.get(1), studentDetail.get(2), studentDetail.get(3), studentDetail.get(4), studentDetail.get(5), studentDetail.get(6), studentDetail.get(7), studentDetail.get(8), studentDetail.get(9), studentDetail.get(10).split("-")[0]);
+			if (id != -1) {
+				String username = "" + id + studentDetail.get(0).toLowerCase().charAt(0) + studentDetail.get(1).toLowerCase().charAt(0) + studentDetail.get(2).toLowerCase(); 
+				studentAccountConnection.insert(id, username, "password");
+			}
 		}
 	}
 

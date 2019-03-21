@@ -30,7 +30,7 @@
                </image>
             </ImageView>
             <Label layoutX="173.0" layoutY="14.0" prefHeight="17.0" text="Name:" AnchorPane.bottomAnchor="289.0" AnchorPane.leftAnchor="173.0" AnchorPane.topAnchor="14.0" />
-            <Label fx:id="stuID" layoutX="173.0" layoutY="100.0" prefHeight="17.0" prefWidth="207.0" text="Student ID: 12345678" AnchorPane.bottomAnchor="203.0" AnchorPane.leftAnchor="173.0" AnchorPane.topAnchor="100.0" />
+            <Label fx:id="stuID" layoutX="173.0" layoutY="100.0" prefHeight="17.0" prefWidth="207.0" text="Student ID:" AnchorPane.bottomAnchor="203.0" AnchorPane.leftAnchor="173.0" AnchorPane.topAnchor="100.0" />
             <Label layoutX="466.0" layoutY="14.0" text="Status:" AnchorPane.bottomAnchor="289.0" AnchorPane.rightAnchor="180.0" AnchorPane.topAnchor="14.0" />
             <Label layoutX="466.0" layoutY="31.0" text="Reason:" wrapText="true" AnchorPane.rightAnchor="180.0" AnchorPane.topAnchor="50.0" />
             <TabPane layoutX="2.0" layoutY="134.0" prefHeight="185.0" prefWidth="600.0" style="-fx-background-color: white;" tabClosingPolicy="UNAVAILABLE" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="135.0">

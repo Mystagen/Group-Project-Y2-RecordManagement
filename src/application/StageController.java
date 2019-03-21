@@ -21,22 +21,26 @@ public class StageController {
 	    loadScreen(0, loader, fxmlStream);
     }
 	
-	private void loadScreen(int clearPanel, FXMLLoader loader, FileInputStream fxmlStream) throws IOException {
+	private void loadScreen(int clearPanel, FXMLLoader loader, FileInputStream fxmlStream) {
 
-	    AnchorPane loginContainer = (AnchorPane) loader.load(fxmlStream);
-	    
-		if (clearPanel == 1) {
-			mainStage.getChildren().clear();
-		} else if (clearPanel == 0) {
-		    Controller controller = loader.<Controller>getController();
-			controller.setParent(this);
+		try {
+		    AnchorPane loginContainer = (AnchorPane) loader.load(fxmlStream);
+		    
+			if (clearPanel == 1) {
+				mainStage.getChildren().clear();
+			} else if (clearPanel == 0) {
+			    Controller controller = loader.<Controller>getController();
+				controller.setParent(this);
+			}
+			
+		    mainStage.getChildren().add(loginContainer);
+			AnchorPane.setLeftAnchor(loginContainer, 0.0);
+			AnchorPane.setRightAnchor(loginContainer, 0.0);
+			AnchorPane.setTopAnchor(loginContainer, 0.0);
+			AnchorPane.setBottomAnchor(loginContainer, 0.0);
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
-		
-	    mainStage.getChildren().add(loginContainer);
-		AnchorPane.setLeftAnchor(loginContainer, 0.0);
-		AnchorPane.setRightAnchor(loginContainer, 0.0);
-		AnchorPane.setTopAnchor(loginContainer, 0.0);
-		AnchorPane.setBottomAnchor(loginContainer, 0.0);
 	}
 	
 	public void logIn() throws IOException {

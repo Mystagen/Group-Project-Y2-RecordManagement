@@ -52,6 +52,7 @@ public class WindowController {
 			updateScreen("./src/timetable.fxml");
 		} catch (IOException e) {
 			System.out.println("Error file not found: " + e);
+			e.printStackTrace();
 		}
 	}
 	

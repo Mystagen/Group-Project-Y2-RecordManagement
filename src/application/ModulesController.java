@@ -41,6 +41,7 @@ public class ModulesController {
 	SQLTable courseConnection = new SQLTable("courses");
 	SQLTable moduleConnection = new SQLTable("modules");
 	SQLTable moduleCourseConnection = new SQLTable("course_modules");
+	SQLTable timetableConnection = new SQLTable("timetables");
 	
 	private ArrayList<String> addCourseDialog() {
 		String[] textFieldNames = {"Course Name", "Course ID"};
@@ -121,6 +122,16 @@ public class ModulesController {
 		
 		ArrayList<String> courseDetails = addCourseDialog(); 
 		courseConnection.insert(courseDetails.get(1), courseDetails.get(0));
+		ResultSet timetableIndexCounter = timetableConnection.find("timetable_id");
+		int timetableCurrentID = 0;
+		try {
+			while (timetableIndexCounter.next()) {
+				timetableCurrentID = timetableIndexCounter.getInt(1);
+			}
+		} catch (Exception e) {
+			System.out.println("Error: " + e);
+		}
+		timetableConnection.insert(timetableCurrentID+1, courseDetails.get(1));
 		
 		drawCourses();
 		
