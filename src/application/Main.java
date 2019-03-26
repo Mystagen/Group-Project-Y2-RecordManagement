@@ -26,8 +26,7 @@ public class Main extends Application {
 	        stage.setResizable(false);
 	        stage.setTitle("Woodlands Record Management System");
 	        stage.show();
-	        
-	        StageController controller = loader.getController(); 
+	    
 		} catch (Exception e) {
 	    	e.printStackTrace();
 	    }

@@ -12,6 +12,7 @@ import javafx.event.EventHandler;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
@@ -24,6 +25,8 @@ import javafx.scene.control.ButtonBar.ButtonData;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import javafx.util.Pair;
 
 public class PopupInputs {
@@ -455,6 +458,258 @@ public class PopupInputs {
 		});
 		
 		return moduleDetailArray;
+	}
+	
+	public int staffSelection(SQLTable staffConnection) {
+		
+		Dialog<ArrayList<String>> dialog = new Dialog<>();
+		
+		dialog.setTitle("Add a tutor");
+		dialog.setHeaderText("Select a member of staff to make a personal tutor");
+		
+		ButtonType functionButtonType = new ButtonType("Add", ButtonData.OK_DONE);
+		dialog.getDialogPane().getButtonTypes().addAll(functionButtonType);
+		
+		GridPane grid = new GridPane();
+		grid.setHgap(10);
+		grid.setVgap(10);
+		grid.setPadding(new Insets(20, 150, 10, 10));
+
+		ArrayList<RadioButton> staffRadioButtonList = new ArrayList<RadioButton>();
+		
+		final ToggleGroup selectedStaff = new ToggleGroup();
+		
+		ResultSet staff = staffConnection.findAll();
+		
+		int counter = 0;
+		
+		try {
+			while (staff.next()) {
+				RadioButton selectedRB = new RadioButton();
+				selectedRB.setToggleGroup(selectedStaff);
+				
+				selectedRB.setId(staff.getString(1));
+				
+				staffRadioButtonList.add(selectedRB);
+				
+				grid.add(new Label(staff.getString(1)), 0, counter);
+				grid.add(new Label(staff.getString(2)), 1, counter);
+				grid.add(new Label(staff.getString(3)), 2, counter);
+				grid.add(new Label(staff.getString(4)), 3, counter);
+				grid.add(selectedRB, 4, counter);
+				counter++;
+			}
+		} catch (Exception e) {
+			System.out.println("Staff Select Error: " + e);
+			e.printStackTrace();
+		}
+		
+		dialog.getDialogPane().setContent(grid);
+		
+		dialog.setResultConverter(dialogButton -> {
+		    if (dialogButton == functionButtonType) {
+		    	ArrayList<String> dataExtract = new ArrayList<String>();
+		    	for (int i = 0; i < staffRadioButtonList.size(); i++) {
+		    		if (staffRadioButtonList.get(i).isSelected()) {
+				    	dataExtract.add(0, staffRadioButtonList.get(i).getId());
+		    		}
+		    	}
+		    	
+		        return dataExtract;
+		    }
+		    return null;
+		});
+
+		int[] returnID = {-1};
+		
+		Optional<ArrayList<String>> result = dialog.showAndWait();
+		
+		try {
+			result.ifPresent(details -> {
+				returnID[0] = Integer.parseInt(details.get(0));
+			});
+		} catch (Exception e) {
+			returnID[0] = -1;
+		}
+
+		return returnID[0];
+		
+	}
+	
+	public ArrayList<String> multipleStudentSelect(SQLTable studentConnection, SQLTable tutorialStudentConnections, int tutorID) {
+
+		ArrayList<String> returnNames = new ArrayList<String>();
+		
+		ArrayList<String> idsInclude = new ArrayList<String>();
+		
+		ArrayList<String> studentIdIgnore = new ArrayList<String>();
+		
+		ResultSet tsID = tutorialStudentConnections.findAll();
+		
+		ArrayList<CheckBox> checkBoxes = new ArrayList<CheckBox>();
+		
+		try {
+			while (tsID.next()) {
+				studentIdIgnore.add(tsID.getString(2));
+			}
+			
+			ResultSet allStudents = studentConnection.findAll();
+			
+			while (allStudents.next()) {
+				int matches = 0;
+				for (int i = 0; i < studentIdIgnore.size(); i++) {
+					if (allStudents.getString(1).equals(studentIdIgnore.get(i))) {
+						matches++;
+					}
+				}
+				if (matches == 0) {
+					idsInclude.add(allStudents.getString(1));
+				}
+			}
+			
+			Dialog<ArrayList<String>> dialog = new Dialog<>();
+			
+			dialog.setTitle("Assign Personal Tutors");
+			dialog.setHeaderText("Select students to assign to current personal tutor");
+			
+			ButtonType functionButtonType = new ButtonType("Assign", ButtonData.OK_DONE);
+			dialog.getDialogPane().getButtonTypes().addAll(functionButtonType);
+			
+			VBox content = new VBox();
+			
+			for (int i = 0; i < idsInclude.size(); i++) {
+				ResultSet studentInfo = studentConnection.findAllWhere("student_id", idsInclude.get(i));
+				
+				HBox row = new HBox();
+				
+				while (studentInfo.next()) {
+					
+					CheckBox cb = new CheckBox();
+					cb.setId(studentInfo.getString(1));
+					
+					checkBoxes.add(cb);
+					
+					row.getChildren().addAll(cb, new Label(studentInfo.getString(4) + " " + studentInfo.getString(5) + " " + studentInfo.getString(6)));
+				}
+				content.getChildren().add(row);
+			}
+			
+			dialog.getDialogPane().setContent(content);
+			
+			dialog.setResultConverter(dialogButton -> {
+			    if (dialogButton == functionButtonType) {
+			    	ArrayList<String> dataExtract = new ArrayList<String>();
+			    	for (int i = 0; i < checkBoxes.size(); i++) {
+			    		if (checkBoxes.get(i).isSelected()) {
+					    	dataExtract.add(checkBoxes.get(i).getId());
+			    		}
+			    	}
+			        return dataExtract;
+			    }
+			    return null;
+			});
+			
+			Optional<ArrayList<String>> result = dialog.showAndWait();
+			
+			try {
+				result.ifPresent(details -> {
+					for (int i = 0; i < details.size(); i++) {
+						returnNames.add(details.get(i));
+					}
+				});
+			} catch (Exception e) {
+				
+			}
+			
+			
+			
+			return returnNames;
+			
+		} catch (Exception e) {
+			System.out.println("Error selecting students to ignore: " + e);
+			e.printStackTrace();
+		}
+	
+		return returnNames;
+	}
+	
+	public void multipleStudentDelete(SQLTable studentConnection, SQLTable tutorialStudentConnections, int tutorID) {
+		
+		ResultSet studentsList = tutorialStudentConnections.findAllWhere("tutor_id", tutorID);
+		
+		ArrayList<CheckBox> checkBoxes = new ArrayList<CheckBox>();
+		
+		ArrayList<String> studentIDList = new ArrayList<String>();
+		
+		try {
+			while (studentsList.next()) {
+				studentIDList.add(studentsList.getString(2));
+			}
+			
+			Dialog<ArrayList<String>> dialog = new Dialog<>();
+			
+			dialog.setTitle("Remove students");
+			dialog.setHeaderText("Remove students from current personal tutor");
+			
+			ButtonType functionButtonType = new ButtonType("Remove", ButtonData.OK_DONE);
+			dialog.getDialogPane().getButtonTypes().addAll(functionButtonType);
+			
+			VBox content = new VBox();
+			
+			for (int i = 0; i < studentIDList.size(); i++) {
+				ResultSet studentInfo = studentConnection.findAllWhere("student_id", studentIDList.get(i));
+				
+				HBox row = new HBox();
+				
+				while (studentInfo.next()) {
+					
+					CheckBox cb = new CheckBox();
+					cb.setId(studentInfo.getString(1));
+					
+					checkBoxes.add(cb);
+					
+					row.getChildren().addAll(cb, new Label(studentInfo.getString(4) + " " + studentInfo.getString(5) + " " + studentInfo.getString(6)));
+				}
+				content.getChildren().add(row);
+			}
+			
+			dialog.getDialogPane().setContent(content);
+			
+			dialog.setResultConverter(dialogButton -> {
+			    if (dialogButton == functionButtonType) {
+			    	ArrayList<String> dataExtract = new ArrayList<String>();
+			    	for (int i = 0; i < checkBoxes.size(); i++) {
+			    		if (checkBoxes.get(i).isSelected()) {
+					    	dataExtract.add(checkBoxes.get(i).getId());
+			    		}
+			    	}
+			        return dataExtract;
+			    }
+			    return null;
+			});
+			
+			Optional<ArrayList<String>> result = dialog.showAndWait();
+			
+			ArrayList<String> namesToDelete = new ArrayList<String>();
+			
+			try {
+				result.ifPresent(details -> {
+					for (int i = 0; i < details.size(); i++) {
+						namesToDelete.add(details.get(i));
+					}
+				});
+			} catch (Exception e) {
+				
+			}
+			
+			for (int i = 0; i < namesToDelete.size(); i++) {
+				tutorialStudentConnections.deleteTutorialStudents(Integer.parseInt(namesToDelete.get(i)));
+			}
+			
+		} catch (Exception e) {
+			System.out.println("Error selecting students to ignore: " + e);
+			e.printStackTrace();
+		}
 	}
 
 }

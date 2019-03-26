@@ -18,7 +18,6 @@ public class Controller {
 	
 	@FXML
 	private void loginRequest() throws IOException {
-		System.out.println(stageController);
 		stageController.logIn();
 	}
 	

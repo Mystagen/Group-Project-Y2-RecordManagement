@@ -239,10 +239,30 @@ public class SQLTable {
 		return rs;
 	}
 	
+	public void insertTutor(int staffID) {
+		try {
+			ResultSet currentTutors = stmt.executeQuery("SELECT * FROM " + this.table);
+			boolean present = false;
+			
+			while (currentTutors.next()) {
+				if (currentTutors.getInt(2) == staffID) {
+					present = true;
+				}
+			}
+			
+			if (!present) {
+				stmt.execute("INSERT INTO " + this.table + " (staff_id) VALUES (" + staffID + ")");
+			}
+		} catch (Exception e) {
+			System.out.println("Error: " + e);
+		}
+	}
 	
-	
-	
-	
-	
-	
+	public void deleteTutorialStudents(int studentID) {
+		try {
+			stmt.execute("DELETE FROM tutorial_students WHERE student_id = " + studentID);
+		} catch (Exception e) {
+			System.out.println("Error: " + e);
+		}
+	}
 }

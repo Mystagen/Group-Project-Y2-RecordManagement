@@ -19,18 +19,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.util.Pair;
-/*
- Column 1 - Name VARCHAR2
- Column 2 - ID INT
- Column 3 - Status VARCHAR2
- Column 4 - Reason VARCHAR2
- Column 5 - address VARCHAR2
- Column 6 - contact VARCHAR2
- Column 7 - qualifications VARCHAR2
- Column 8 - course VARCHAR2
- Column 9 - attendence VARCHAR2
- 
- */
+
 public class StudentController implements Initializable {
 	
 	@FXML
