@@ -5,6 +5,7 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 
 public class SQLTable {
 	private String table;
@@ -124,6 +125,36 @@ public class SQLTable {
 		}
 	}
 	
+	public void insertAG(String assignmentID, int studentID) {
+		try {
+			stmt.execute("INSERT INTO assignment_grade (assignment_id, student_id) VALUES (\"" + assignmentID + "\", " + studentID + ")");
+		} catch (SQLException e) {
+			System.out.println("Error inserting assignment grade: " + e);
+			e.printStackTrace();
+		}
+	}
+	
+	public void updateAssignment(int id, String title, String description, int weighting) {
+		try {
+			stmt.execute("UPDATE assignments SET title = \"" + title + "\" WHERE assignment_id = " + id);
+			stmt.execute("UPDATE assignments SET description = \"" + description + "\" WHERE assignment_id = " + id);
+			stmt.execute("UPDATE assignments SET weighting = " + weighting + " WHERE assignment_id = " + id);
+			
+		} catch (Exception e) {
+			System.out.println("Error updating assignment: " + e);
+			e.printStackTrace();
+		}
+	}
+	
+	public void assignmentInsert(String column1, String column2, int column3, String column4) {
+		try {
+			stmt.execute("INSERT INTO assignments (title, description, weighting, module_code) VALUES (\"" + column1 + "\", \"" + column2 + "\", " + column3 + ", \"" + column4 + "\")");
+		} catch (SQLException e) {
+			System.out.println("Error inserting assignment: " + e);
+			e.printStackTrace();
+		}
+	}
+	
 	public void insertStaff(String column1, String column2, String column3, String column4, String column5, String column6, String column7, String column8, String column9, String column10, String column11) {
 		try {
 			stmt.execute("INSERT INTO contact_address (house, street, city, county, postcode) VALUES (\"" + column4 + "\", \"" + column5 + "\", \"" + column6 + "\", \"" + column7 + "\", \"" + column8 + "\")");
@@ -141,11 +172,14 @@ public class SQLTable {
 	
 	public void updateStudent(String id, String column1, String column2, String column3, String column4, String column5, String column6, String column7, String column8, String column9, String column10, String column11) {
 		try {
-			ResultSet addressIDSet = stmt.executeQuery("SELECT address_id FROM student_records WHERE student_id = " + id);
+			ResultSet addressIDSet = stmt.executeQuery("SELECT address_id, course_code FROM student_records WHERE student_id = " + id);
 			String addressID = "";
+			String courseCode = "";
 			while (addressIDSet.next()) {
 				addressID = addressIDSet.getString(1);
+				courseCode = addressIDSet.getString(2);
 			}
+			
 			stmt.execute("UPDATE contact_address SET house = \"" + column4 + "\" WHERE address_id = " + addressID);
 			stmt.execute("UPDATE contact_address SET street = \"" + column5 + "\" WHERE address_id = " + addressID);
 			stmt.execute("UPDATE contact_address SET city = \"" + column6 + "\" WHERE address_id = " + addressID);
@@ -157,7 +191,20 @@ public class SQLTable {
 			stmt.execute("UPDATE student_records SET surname = \"" + column3 + "\" WHERE student_id = " + id);
 			stmt.execute("UPDATE student_records SET contact_phone = \"" + column9 + "\" WHERE student_id = " + id);
 			stmt.execute("UPDATE student_records SET contact_email = \"" + column10 + "\" WHERE student_id = " + id);
-			stmt.execute("UPDATE student_records SET course_code = \"" + column11 + "\" WHERE student_id = " + id);
+			if (!courseCode.equals(column11)) {
+				stmt.execute("UPDATE student_records SET course_code = \"" + column11 + "\" WHERE student_id = " + id);
+				
+				stmt.execute("DELETE FROM total_attendance WHERE student_id = " + id);
+				ResultSet modules = stmt.executeQuery("SELECT * FROM course_modules WHERE course_code = \"" + column11 + "\"");
+				ArrayList<String> moduleCodes = new ArrayList<String>();
+				while (modules.next()) {
+					moduleCodes.add(modules.getString(2));
+				}
+				
+				for (int i = 0; i < moduleCodes.size(); i++) {
+					stmt.execute("INSERT INTO total_attendance VALUES (" + id + ", + \"" + moduleCodes.get(i) + "\", 0, 0)");
+				}
+			}
 		} catch (SQLException e) {
 			System.out.println("Error: " + e);
 			e.printStackTrace();
@@ -189,12 +236,60 @@ public class SQLTable {
 		}
 	}
 	
+	public void updatePersonalAttendance(String id, String module_code) {
+		try {
+			ResultSet studentAttendance = stmt.executeQuery("SELECT * FROM total_attendance WHERE student_id = " + id + " AND module_code = \"" + module_code + "\"");
+			
+			ArrayList<String> studentAttendanceList = new ArrayList<String>();
+			while (studentAttendance.next()) {
+				studentAttendanceList.add(Integer.toString((studentAttendance.getInt(3) + 1)));
+			}
+			
+			for (int i = 0; i < studentAttendanceList.size(); i++) {
+				stmt.execute("UPDATE total_attendance SET attended_classes = " + studentAttendanceList.get(i) + " WHERE student_id = " + id + " AND module_code = \"" + module_code + "\"");
+			}
+			
+		} catch (Exception e) {
+			System.out.println("Error: " + e);
+			e.printStackTrace();
+		}
+	}
+	
+	public void updateClasses(String module_code) {
+		try {
+			ResultSet modulesRan = stmt.executeQuery("SELECT * FROM total_attendance WHERE module_code = \"" + module_code + "\"");
+			
+			int currentClassCount = 0;
+			
+			while (modulesRan.next()) {
+				if (modulesRan.getInt(4) > currentClassCount) {
+					currentClassCount = modulesRan.getInt(4);
+				}
+			}
+			currentClassCount++;
+			stmt.execute("UPDATE total_attendance SET total_number_of_classes = " + currentClassCount + " WHERE module_code = \"" + module_code + "\"");
+			
+		} catch (Exception e) {
+			System.out.println("Error: " + e);
+			e.printStackTrace();
+		}
+	}
+	
 	public void updateStudentStatus(String id, String record, String dormancy) {
 		try {
 			stmt.execute("UPDATE student_records SET record_status = \"" + record + "\" WHERE student_id = " + id);
 			stmt.execute("UPDATE student_records SET dormancy_reason = \"" + dormancy + "\" WHERE student_id = " + id);
 		} catch (SQLException e) {
 			System.out.println("Error: " + e);
+			e.printStackTrace();
+		}
+	}
+	
+	public void updateAssignmentGrade(int id, String grade) {
+		try {
+			stmt.execute("UPDATE assignment_grade SET grade = \"" + grade + "\" WHERE student_id = " + id);
+		} catch (Exception e) {
+			System.out.println("Updating Assignment Error: " + e);
 			e.printStackTrace();
 		}
 	}

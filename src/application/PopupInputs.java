@@ -536,6 +536,83 @@ public class PopupInputs {
 		
 	}
 	
+	public ArrayList<String> addAttendance(SQLTable attendanceConnection, String module_code) {
+		ArrayList<String> attendanceIDs = new ArrayList<String>();
+		
+		ResultSet attendingStudents = attendanceConnection.findAllWhere("module_code", module_code);
+		
+		ArrayList<String> studentIDs = new ArrayList<String>();
+		ArrayList<CheckBox> checkboxList = new ArrayList<CheckBox>();
+		
+		try {
+			while (attendingStudents.next()) {
+				studentIDs.add(attendingStudents.getString(1));
+			}
+			
+			for (int i = 0; i < studentIDs.size(); i++) {
+				CheckBox attendCB = new CheckBox();
+				attendCB.setId(studentIDs.get(i));
+				checkboxList.add(attendCB);
+			}
+			
+			Dialog<ArrayList<String>> dialog = new Dialog<>();
+			
+			dialog.setTitle("Attendance");
+			dialog.setHeaderText("Select students who attended");
+			
+			ButtonType functionButtonType = new ButtonType("Submit", ButtonData.OK_DONE);
+			dialog.getDialogPane().getButtonTypes().addAll(functionButtonType);
+			
+			VBox content = new VBox();
+			
+			for (int i = 0; i < studentIDs.size(); i++) {
+				
+				HBox row = new HBox();
+				
+				row.getChildren().addAll(new Label(studentIDs.get(i)), checkboxList.get(i));
+				
+				content.getChildren().add(row);
+			}
+			
+			dialog.getDialogPane().setContent(content);
+			
+			dialog.setResultConverter(dialogButton -> {
+			    if (dialogButton == functionButtonType) {
+			    	ArrayList<String> dataExtract = new ArrayList<String>();
+			    	for (int i = 0; i < checkboxList.size(); i++) {
+			    		if (checkboxList.get(i).isSelected()) {
+					    	dataExtract.add(checkboxList.get(i).getId());
+			    		}
+			    	}
+			        return dataExtract;
+			    }
+			    return null;
+			});
+			
+			Optional<ArrayList<String>> result = dialog.showAndWait();
+			
+			try {
+				result.ifPresent(details -> {
+					for (int i = 0; i < details.size(); i++) {
+						attendanceIDs.add(details.get(i));
+					}
+				});
+			} catch (Exception e) {
+				
+			}
+			
+			
+			
+			return attendanceIDs;
+			
+		} catch (SQLException e) {
+			System.out.println("Error: "  + e);
+			e.printStackTrace();
+		}
+		
+		return attendanceIDs;
+	}
+	
 	public ArrayList<String> multipleStudentSelect(SQLTable studentConnection, SQLTable tutorialStudentConnections, int tutorID) {
 
 		ArrayList<String> returnNames = new ArrayList<String>();

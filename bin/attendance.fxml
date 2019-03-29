@@ -6,28 +6,26 @@
 <?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
-<?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.AnchorPane?>
 
 <AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="application.AttendanceController">
    <children>
-      <SplitPane dividerPositions="0.2785234899328859" minHeight="300.0" orientation="VERTICAL" prefHeight="300.0" prefWidth="300.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+      <SplitPane dividerPositions="0.1" orientation="VERTICAL" prefHeight="300.0" prefWidth="300.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
         <items>
-          <AnchorPane maxHeight="128.0" minHeight="128.0" minWidth="0.0" prefHeight="128.0" prefWidth="598.0">
+          <AnchorPane prefHeight="128.0" prefWidth="598.0">
                <children>
-                  <Label layoutX="194.0" layoutY="31.0" text="Module Name/Code:" AnchorPane.leftAnchor="100.0" AnchorPane.topAnchor="30.0" />
-                  <Label layoutX="194.0" layoutY="54.0" text="Week Number: (Optional)" AnchorPane.bottomAnchor="50.0" AnchorPane.leftAnchor="100.0" />
-                  <TextField layoutX="349.0" layoutY="26.0" AnchorPane.rightAnchor="100.0" AnchorPane.topAnchor="26.0" />
-                  <ChoiceBox layoutX="349.0" layoutY="57.0" prefWidth="150.0" AnchorPane.bottomAnchor="46.0" AnchorPane.rightAnchor="99.0" />
-                  <Button layoutX="398.0" layoutY="89.0" mnemonicParsing="false" text="Search" AnchorPane.bottomAnchor="14.0" AnchorPane.rightAnchor="148.0" />
+                  <Label layoutX="38.0" layoutY="11.0" text="Module Select:" AnchorPane.leftAnchor="38.0" />
+                  <ChoiceBox fx:id="moduleSelect" layoutX="127.0" layoutY="7.0" prefWidth="150.0" />
+                  <Button layoutX="291.0" layoutY="7.0" mnemonicParsing="false" onAction="#viewModuleAttendance" text="View" AnchorPane.rightAnchor="265.0" />
+                  <Button fx:id="enterDataButton" layoutX="505.0" layoutY="7.0" mnemonicParsing="false" onAction="#enterData" text="Enter Data" />
                </children>
             </AnchorPane>
-          <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="100.0" prefWidth="160.0">
+          <AnchorPane prefHeight="100.0" prefWidth="160.0">
                <children>
-                  <TableView layoutX="49.0" layoutY="-7.0" prefHeight="200.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                  <TableView fx:id="attendanceTable" layoutX="49.0" layoutY="-7.0" prefHeight="200.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                     <columns>
-                      <TableColumn prefWidth="75.0" text="Student Name +ID" />
-                      <TableColumn prefWidth="75.0" text="Attendance" />
+                      <TableColumn fx:id="idColumn" prefWidth="75.0" text="Student ID" />
+                      <TableColumn fx:id="attendanceColumn" prefWidth="75.0" text="Attendance" />
                     </columns>
                      <columnResizePolicy>
                         <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
